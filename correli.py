@@ -39,7 +39,25 @@ def four1(data, nn, isign):
             wi = wi * wpr + wtemp * wpi + wi
         mmax = istep
 
+def twofft(data1, data2, fft1, fft2, N):
+    c1 = 0.5  + 0.0j
+    c2 = -0.0 + 0.5j
 
+    fft1 = data1 + data2*1j
+    fft1 = four1(fft1, N, 1)
+    fft2(0) = np.imag(fft1(0)) + 0j
+    fft1(0) = np.real(fft1(0)) + 0j
+
+    N2 = N + 2
+    for j in range(2, N+1, 1):
+        h1 = c1 * (fft1(j) + np.conj(fft1(N2-j)))
+        h2 = c2 * (fft1(j) - np.conj(fft1(N2-j)))
+        fft1(j) = h1
+        fft1(N2-j) = np.conj(h1)
+        fft2(j) = h2
+        fft2(N2-j) = np.conj(h2)
+
+    return fft1, fft2
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
