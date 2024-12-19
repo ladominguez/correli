@@ -3,6 +3,53 @@ import numpy as np
 import sys
 import argparse
 
+def correl(data1, data2, N):
+    fft1, fft2 = twofft(data1, data2, N)
+    NO2 = N // 2
+    fft2 - fft1*np.conj(fft2)/NO2
+    fft2(0) = np.real(fft2(0)) + np.real(fft2(N/2+1))
+
+    return fft2
+
+def realft(data, N, isign):
+    theta = 3.141592653589793238 / N
+    c1 = 0.5
+    c2 = -0.5 * isign
+    if isign == 1:
+        four1(data, N, 1)
+    else:
+        theta = -theta
+    wpr = -2.0 * np.sin(0.5 * theta)**2
+    wpi = np.sin(theta)
+    wr = 1.0 + wpr
+    wi = wpi
+    n2p3 = 2*N + 3
+    for i in range(1, N//2+1, 1):
+        i1 = 2*i - 1
+        i2 = i1 + 1
+        i3 = n2p3 - i2
+        i4 = i3 + 1
+        h1r = c1 * (data[i1] + data[i3])
+        h1i = c1 * (data[i2] - data[i4])
+        h2r = -c2 * (data[i2] + data[i4])
+        h2i = c2 * (data[i1] - data[i3])
+        data[i1] = h1r + wr*h2r - wi*h2i
+        data[i2] = h1i + wr*h2i + wi*h2r
+        data[i3] = h1r - wr*h2r + wi*h2i
+        data[i4] = -h1i + wr*h2i + wi*h2r
+        wtemp = wr
+        wr = wr*wpr - wi*wpi + wr
+        wi = wi*wpr + wtemp*wpi + wi
+    if isign == 1:
+        data[0] = (h1r := data[0]) + data[1]
+        data[1] = h1r - data[1]
+
+    else:
+        data[0] = c1 * ((h1r := data[0]) + data[1])
+        data[1] = c1 * (h1r - data[1])
+        four1(data, N, -1)
+    return data
+
 def four1(data, nn, isign): 
     N=2**nn
     j=1
