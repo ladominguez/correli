@@ -3,13 +3,16 @@ import numpy as np
 import sys
 import argparse
 
+alpha = 8313.0
+beta = 4800.0
+
 def correl(data1, data2, N):
     fft1, fft2 = twofft(data1, data2, N)
     NO2 = N // 2
     fft2 - fft1*np.conj(fft2)/NO2
     fft2(0) = np.real(fft2(0)) + np.real(fft2(N/2+1))
-
-    return fft2
+    return realft(fft2, N/2, -1)
+    
 
 def realft(data, N, isign):
     theta = 3.141592653589793238 / N
@@ -145,11 +148,12 @@ if __name__ == "__main__":
         npts = min(npts1, npts2)
 
     lim_1 = 1
-    lim_2 = np.rpund(window / delta)
+    lim_2 = np.round(window / delta)
 
     ancdelta = 0.0
     aintervalo = 0.0
 
+    noise = True
     while True:
         aintervalo = aintervalo + window
         lim_2 = lim_2 + 1
@@ -161,6 +165,56 @@ if __name__ == "__main__":
         aint2 = np.sum(vec2**2)
 
         lim_1 = lim_1 + 1
+
+        cor = correl(vec1, vec2, len(vec1))
+
+        k = (npts/4) + 1
+        res = np.zeros(npts/2)
+        for i in range(0, npts/4, 1):
+            res[k] = np.real(cor[i])
+            k += 1
+        
+        for i in range(0, npts/4, 1):
+            res[i] = np.real(cor[k])
+            k += 1
+
+        corrim = -(delta * npts/2)
+        delta1 = delta*2
+        fac = (aint1*aint2)**0.5
+
+        amax = np.max(res)
+        amaxc = amax/fac
+
+        u1 = np.sum(vec1[lim_1:lim_2+1]**2)
+        u2 = np.sum(vec2[lim_1:lim_2+1]**2)
+        u1 = u1/(lim_2 - lim_1 + 1)
+        u2 = u2/(lim_2 - lim_1 + 1)
+
+        if noise:
+            an1 = np.sum(vec1[lim_1:lim_2+1]**2)
+            an2 = np.sum(vec2[lim_1:lim_2+1]**2)
+            an1 = an1/(lim_2 - lim_1 + 1)
+            an2 = an2/(lim_2 - lim_1 + 1)
+            noise = False
+
+        anoisec = np.sqrt(1 - (an1/u1))*np.sqrt(1 - (an2/u2))
+        amaxc = amaxc/anoisec
+
+        amax = np.clip(amax, None, 1)
+
+        sigma = 2*(1 - amaxc)/355.3
+        anum = 7*((2/alpha**6) + (3/beta**6))
+        aden = (6/alpha**8) + (7/beta**8)
+        dist = np.sqrt(sigma*anum/aden)
+        ancdelta = ancdelta + delta
+
+        
+
+
+
+
+
+
 
 
 
