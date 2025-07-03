@@ -70,9 +70,9 @@ def four1(data, nn, isign):
     mmax = 2
     while N > mmax:
         istep = 2 * mmax
-        theta = 6.28318530717959 / (isign * mmax)
-        wtemp = np.sin(0.5 * theta)
-        wpr = -2.0 * wtemp * wtemp
+        theta = 2*np.pi / (isign * mmax)
+        
+        wpr = -2.0 * np.sin(0.5 * theta)
         wpi = np.sin(theta)
         wr = 1.0
         wi = 0.0
